@@ -22,9 +22,12 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Nesterovs;
-import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.deeplearning4j.nn.conf.inputs.InputType;
+import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
+import org.deeplearning4j.nn.conf.layers.SubsamplingLayer;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 
 public class MnistStep1 {
@@ -52,25 +55,41 @@ public class MnistStep1 {
 		int nEpochs = 2; // Number of training epochs
 
 		log.info("Build model....");
+		int channels = 1;
 		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-		  .seed(rngSeed) //include a random seed for reproducibility
-		  // use stochastic gradient descent as an optimization algorithm
-		  .updater(new Nesterovs(0.006, 0.9))
-		  .l2(1e-4)
-		  .list()
-		  .layer(new DenseLayer.Builder() //create the first, input layer with xavier initialization
-		    .nIn(HEIGHT*WIDTH)
-		    .nOut(1000)
-		    .activation(Activation.RELU)
-		    .weightInit(WeightInit.XAVIER)
-		    .build())
-		  .layer(new OutputLayer.Builder(LossFunction.NEGATIVELOGLIKELIHOOD) //create hidden layer
-		    .nIn(1000)
-		    .nOut(N_OUTCOMES)
-		    .activation(Activation.SOFTMAX)
-		    .weightInit(WeightInit.XAVIER)
-	 	    .build())
-		  .build();
+                .seed(123)
+                .l2(0.0005) // ridge regression value
+                .updater(new Nesterovs(0.006, 0.9))
+                .weightInit(WeightInit.XAVIER)
+                .list()
+                .layer(new ConvolutionLayer.Builder(3, 3)
+                    .nIn(channels )
+                    .stride(1, 1)
+                    .nOut(50)
+                    .activation(Activation.RELU)
+                    .build())
+                .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+                    .kernelSize(2, 2)
+                    .stride(2, 2)
+                    .build())
+                .layer(new ConvolutionLayer.Builder(3, 3)
+                    .stride(1, 1) // nIn need not specified in later layers
+                    .nOut(50)
+                    .activation(Activation.RELU)
+                    .build())
+                .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
+                    .kernelSize(2, 2)
+                    .stride(2, 2)
+                    .build())
+                .layer(new DenseLayer.Builder().activation(Activation.RELU)
+                    .nOut(500)
+                    .build())
+                .layer(new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                    .nOut(N_OUTCOMES)
+                    .activation(Activation.SOFTMAX)
+                    .build())
+                .setInputType(InputType.convolutionalFlat(HEIGHT, WIDTH, channels)) // InputType.convolutional for normal image
+                .build();
 		MultiLayerNetwork model = new MultiLayerNetwork(conf);
 		model.init();
 		//print the score with every 500 iteration
