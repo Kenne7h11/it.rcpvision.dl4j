@@ -32,16 +32,16 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 public class MnistStep1 {
 	//The absolute path of the folder containing MNIST training and testing subfolders
-	private static final String MNIST_DATASET_ROOT_FOLDER = "mnist_png/";
+	private static final String MNIST_DATASET_ROOT_FOLDER = "src/main/resources/CNN_BLACK/";
 	//Height and widht in pixel of each image
-	private static final int HEIGHT = 28;
-	private static final int WIDTH = 28;
+	private static final int HEIGHT = 150;
+	private static final int WIDTH = 150;
 	//The total number of images into the training and testing set
-	private static final int N_SAMPLES_TRAINING = 60000;
-	private static final int N_SAMPLES_TESTING = 10000;
+	private static final int N_SAMPLES_TRAINING = 292;
+	private static final int N_SAMPLES_TESTING = 120;
 	//The number of possible outcomes of the network for each input, 
 	//correspondent to the 0..9 digit classification
-	private static final int N_OUTCOMES = 10;
+	private static final int N_OUTCOMES = 2;
 	
 	private static Logger log = LoggerFactory.getLogger(MnistStep1.class);
 	
@@ -110,8 +110,9 @@ public class MnistStep1 {
 	
 	private static DataSetIterator getDataSetIterator(String folderPath, int nSamples) throws IOException{
 		File folder = new File(folderPath);
+		System.out.println(folderPath);
 		File[] digitFolders = folder.listFiles();
-		NativeImageLoader nil = new NativeImageLoader(HEIGHT, WIDTH);
+		NativeImageLoader nil = new NativeImageLoader(HEIGHT, WIDTH,1 );
 		ImagePreProcessingScaler scaler = new ImagePreProcessingScaler(0,1);
 		
 		INDArray input = Nd4j.create(new int[]{ nSamples, HEIGHT*WIDTH });
@@ -127,6 +128,7 @@ public class MnistStep1 {
 		  for (File imageFile : imageFiles) {
 		    //read the image as a one dimensional array of 0..255 values
 		    INDArray img = nil.asRowVector(imageFile);
+		    System.out.println(img.length());
 		    //scale the 0..255 integer values into a 0..1 floating range
 		    //Note that the transform() method returns void, since it updates its input array
 		    scaler.transform(img);
