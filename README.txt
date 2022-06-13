@@ -1,4 +1,10 @@
 # it.rcpvision.dl4j
+
+
+
+THE CODE IS HERE -> https://github.com/Kenne7h11/it.rcpvision.dl4j/blob/master/src/main/java/it/rcpvision/dl4j/workbench/MnistStep1.java
+
+
 ========================Evaluation Metrics========================
  # of classes:    2
  Accuracy:        0.8667
